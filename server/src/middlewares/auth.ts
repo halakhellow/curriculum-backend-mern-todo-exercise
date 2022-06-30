@@ -1,22 +1,24 @@
-import jwt from 'jsonwebtoken';
+import jwt from "jsonwebtoken";
 import keys from "../config/keys";
 import User from "../models/user";
 
-export const auth = async (req: any, res: any, next: any) => {
-    try {
-        const token = req.header('Authorization')?.replace('Bearer ', '');
-        if (!token) return res.status(401).send('no token provided');
+import { Request, Response, NextFunction } from "express";
 
-        //TODO: FIX "any" here too.
-        const decoded = jwt.verify(token, keys.SECRET_KEY) as any;
+export const auth = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const token = req.header("Authorization")?.replace("Bearer ", "");
+    if (!token) return res.status(401).send("no token provided");
 
-        const user = await User.findOne({email: decoded.email});
-        if (!user) return res.status(401).send('no such a user');
+    //TODO: FIX "any" here too.
+    const decoded = jwt.verify(token, keys.SECRET_KEY) as { email: string };
 
-        req.user = user;
+    const user = await User.findOne({ email: decoded.email });
+    if (!user) return res.status(401).send("no such a user");
 
-        next();
-    } catch (err) {
-        res.status(401).send('authentication failed!');
-    }
+    req.user = user;
+
+    next();
+  } catch (err) {
+    res.status(401).send("authentication failed!");
+  }
 };
